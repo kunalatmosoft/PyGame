@@ -5,7 +5,7 @@ import random
 pygame.init()
 
 # Screen dimensions
-screen_width = 500
+screen_width = 800
 screen_height = 600
 
 # Create the screen
@@ -44,11 +44,21 @@ player_score = 0
 opponent_score = 0
 font = pygame.font.Font(None, 74)
 
+# Winning score
+winning_score = 10
+
 def show_score():
     player_text = font.render(str(player_score), True, white)
     screen.blit(player_text, (screen_width // 4, 10))
     opponent_text = font.render(str(opponent_score), True, white)
     screen.blit(opponent_text, (screen_width * 3 // 4, 10))
+
+def show_winner(winner):
+    winner_text = font.render(winner + " Wins!", True, white)
+    screen.fill(black)
+    screen.blit(winner_text, (screen_width // 4, screen_height // 2))
+    pygame.display.flip()
+    pygame.time.wait(3000)
 
 # Game Loop
 running = True
@@ -57,22 +67,9 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_UP:
-                player_speed = -3.0  # Increase player speed
-            if event.key == pygame.K_DOWN:
-                player_speed = 3.0  # Increase player speed
-        
-        if event.type == pygame.KEYUP:
-            if event.key == pygame.K_UP or event.key == pygame.K_DOWN:
-                player_speed = 0
-    
-    # Move player paddle
-    player_y += player_speed
-    if player_y < 0:
-        player_y = 0
-    if player_y > screen_height - paddle_height:
-        player_y = screen_height - paddle_height
+        # Touch events for player paddle movement
+        elif event.type == pygame.MOUSEMOTION:
+            player_y = event.pos[1] - paddle_height / 2  # Center paddle on touch position
 
     # Move opponent paddle
     if opponent_y + paddle_height / 2 < ball_y:
@@ -103,6 +100,9 @@ while running:
     # Ball out of bounds
     if ball_x <= 0:
         opponent_score += 1
+        if opponent_score == winning_score:
+            show_winner("Opponent")
+            running = False
         ball_x = screen_width // 2
         ball_y = screen_height // 2
         ball_x_change *= random.choice((1, -1))
@@ -110,6 +110,9 @@ while running:
     
     if ball_x >= screen_width - ball_size:
         player_score += 1
+        if player_score == winning_score:
+            show_winner("Player")
+            running = False
         ball_x = screen_width // 2
         ball_y = screen_height // 2
         ball_x_change *= random.choice((1, -1))
@@ -119,9 +122,9 @@ while running:
     screen.fill(black)
 
     # Draw paddles and ball
-    pygame.draw.rect(screen, white, (player_x, player_y, paddle_width, paddle_height))
-    pygame.draw.rect(screen, white, (opponent_x, opponent_y, paddle_width, paddle_height))
-    pygame.draw.ellipse(screen, white, (ball_x, ball_y, ball_size, ball_size))
+    pygame.draw.rect(screen, white, (player_x, int(player_y), paddle_width, paddle_height))
+    pygame.draw.rect(screen, white, (opponent_x, int(opponent_y), paddle_width, paddle_height))
+    pygame.draw.ellipse(screen, white, (int(ball_x), int(ball_y), ball_size, ball_size))
 
     # Show score
     show_score()
@@ -133,7 +136,6 @@ while running:
     pygame.time.Clock().tick(60)
 
 pygame.quit()
-
 
 
 """ class Player:
